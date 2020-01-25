@@ -11,8 +11,6 @@ export interface State {
 
 }
 
-
-
 export class ListState implements State {
     static readonly empty: string = "?"
     public state: Array<Array<string>>;
@@ -60,7 +58,13 @@ export class ListState implements State {
      * @param action The action to be executed
      */
     doAction(action: Action): State {
-        let copy: Array<Array<string>> = Array.from(this.state)
+        // TODO something fishy here
+        let copy: Array<Array<string>> = new Array()
+        this.state.forEach((row: Array<string>) => {
+            copy.push(Array.from(row))
+        });
+
+
         copy[action.rowIndex][action.colIndex] = action.letter;
         return new ListState(this.ruleSet, copy);
     }
@@ -70,7 +74,11 @@ export class ListState implements State {
      * @param previousState The state to be compared to
      */
     getReward(previousState: State): number {
-        return this.getPoints() - previousState.getPoints();
+        if (this.getActions().length == 0) {
+            return this.getPoints() - previousState.getPoints();
+        }
+        else
+            return 0
     }
 
     /**
@@ -146,12 +154,12 @@ export class ListState implements State {
     }
 
     toString(): string {
-        let s: string = "\n";
+        let s: string = "";
         for (let i = 0; i < this.state.length; i++) {
-            s += this.state[i].toString() + "\n"
+            s += this.state[i].toString()
 
         }
-        return s + ((this.getActions().length != 0 ) ? (", letter to play is:" + this.letter) : "");
+    return s;
     }
 
 

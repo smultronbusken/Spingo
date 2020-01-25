@@ -23,8 +23,11 @@ export interface RuleSet {
 
 
 export class SwedishRuleSet implements RuleSet{
-    static readonly symbols: Array<string> = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "x", "y", "z", "å", "ä", "ö"]
-    distribution: Array<number> = [4/44, 1/44, 1/44, 2/44, 3/44, 1/44, 1/44, 1/44, 3/44, 1/44, 2/44, 2/44, 1/44, 2/44, 2/44, 1/44, 1/44, 3/44, 2/44, 2/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44]
+    //static readonly symbols: Array<string> = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "x", "y", "z", "å", "ä", "ö"]
+    //distribution: Array<number> = [4/44, 1/44, 1/44, 2/44, 3/44, 1/44, 1/44, 1/44, 3/44, 1/44, 2/44, 2/44, 1/44, 2/44, 2/44, 1/44, 1/44, 3/44, 2/44, 2/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44]
+    static readonly symbols: Array<string> = ["a", "b"]
+    distribution: Array<number> = [3/4, 1/4]
+    
     rowLength: number;
     colLength: number;
     words: Set<string> = new Set();
@@ -34,6 +37,8 @@ export class SwedishRuleSet implements RuleSet{
             throw new Error("Length of symbol and distribution array is not equal.")
         this.rowLength = rowLength;
         this.colLength = colLength;
+        
+        /*
         let data = fs.readFileSync(path.join(__dirname, '../words/se_5.txt'), "latin1")
 
 
@@ -43,6 +48,9 @@ export class SwedishRuleSet implements RuleSet{
         }) 
         
         this.words = new Set(data.split("\r\n"));
+        */
+
+        this.words = new Set(["a", "ab"])
         console.log("Created rule set. Words: " + this.words.size)
     }
 

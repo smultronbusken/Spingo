@@ -28,10 +28,13 @@ export interface State {
      */
     getPoints(): number
 
-    getNeighbourStates(symbols: Array<string>): Array<State>
-
     getWords(): Array<string>
 
+    getRows(): Array<Array<string>>
+
+    getColumns(): Array<Array<string>> 
+
+    isBoardFull(): boolean
 }
 
 export class ListState implements State {
@@ -90,10 +93,11 @@ export class ListState implements State {
         return new ListState(this.ruleSet, copy);
     }
 
+
     isBoardFull(): boolean {
         let isFull: boolean = true;
-        this.board.forEach((element: Array<string>) => {
-            if (element.find((s: string) => s == ListState.empty) == undefined) {
+        this.board.forEach((row: Array<string>) => {
+            if (row.find((s: string) => s == ListState.empty) == undefined) {
                 isFull = false;
             }
         });
@@ -114,68 +118,36 @@ export class ListState implements State {
             return 0;
 
         let total: number = 0;
-        this.board.map((combination: Array<string>) => {
-            total += this.getLongestWord(combination).length;
+        this.getRows().map((combination: Array<string>) => {
+            total += this.ruleSet.getLongestWord(combination).length;
         })
 
-        /*
-        for (let col = 0; col < this.ruleSet.colLength; col++) {
+        
+        for (let col = 0; col < this.ruleSet.colLength + 1; col++) {
             let columnCombination: Array<string> = []
-            this.state.map((row: Array<string>) =>  {
+            this.board.map((row: Array<string>) =>  {
                 columnCombination.push(row[col]);
             })
-            total += this.getLongestWord(columnCombination).length
-        }*/
+            total += this.ruleSet.getLongestWord(columnCombination).length
+        }
         return total;
     }
 
     getWords(): Array<string> {
         let words: Array<string> = new Array()
         this.board.map((combination: Array<string>) => {
-            words.push(this.getLongestWord(combination));
+            words.push(this.ruleSet.getLongestWord(combination));
         })
-        for (let col = 0; col < this.ruleSet.colLength; col++) {
+        for (let col = 0; col < this.ruleSet.colLength + 1; col++) {
             let columnCombination: Array<string> = []
             this.board.map((row: Array<string>) =>  {
                 columnCombination.push(row[col]);
             })
-            words.push(this.getLongestWord(columnCombination));
+            words.push(this.ruleSet.getLongestWord(columnCombination));
         }
         return words;
     }
 
-    /**
-     * Returns longest word 
-     * @param combination A combination of symbols
-     */
-    getLongestWord(combination: Array<string>): string {
-        function getAllSubstrings(str: string): Array<string> {
-            var i, j, result = [];
-            for (i = 0; i < str.length; i++) {
-                for (j = i + 1; j < str.length + 1; j++) {
-                    if (str.slice(i, j).indexOf(ListState.empty) <= -1)
-                        result.push(str.slice(i, j));
-                }
-            }
-            return result;
-        }
-
-        // Stringify the state and get all substrings
-        let combinationAsString: string = combination.join("");
-        let substrings: Array<string> = getAllSubstrings(combinationAsString);
-
-        // Sort the substring by decreasing length
-        substrings.sort((a: string, b: string) => (b.length - a.length));
-
-        // Find the longest word.
-        for (let i = 0; i < substrings.length; i++) {
-            const s = substrings[i];
-            if (this.ruleSet.isWord(s)) {
-                return s;
-            }
-        }
-        return "";
-    }
 
     toString(): string {
         let s: string = "";
@@ -185,30 +157,31 @@ export class ListState implements State {
         return s;
     }
 
-    /**
-     * @param symbols The symbols that can be used. For example [a, b, c]
-     */
-    getNeighbourStates(symbols: Array<string>): Array<State> {
-        let states: Array<State> = new Array();
-        symbols.forEach((element: string)  => {
 
-            this.board[0].forEach((value: string, index: number) => {
-                
-                if (value == ListState.empty) {
-                    let temp: State = new ListState(this.ruleSet, [Array.from(this.board[0])])
-                    temp.board[0][index] = element;
-                    states.push(temp)
-                }
+    getColumns(): Array<Array<string>> {
+        
+        let cols: Array<Array<string>> = new Array()
 
-            });
-        
-        
-        });
-        return states;
+        for (let col = 0; col < this.ruleSet.colLength + 1; col++) {
+            let columnCombination: Array<string> = []
+            this.board.map((row: Array<string>) =>  {
+                columnCombination.push(row[col]);
+            })
+            cols.push(columnCombination);
+        }
+
+        return cols
     }
 
 
+    getRows(): Array<Array<string>> {
     
+        let rows: Array<Array<string>> = new Array()
+        this.board.map((combination: Array<string>) => {
+            rows.push(combination);
+        })
+        return rows
+    }
 }
 
 

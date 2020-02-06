@@ -11,26 +11,35 @@ import { UtilityAgent } from "./utilityAgent";
 */
 
 class Game {
-    ruleSet: RuleSet = new SwedishRuleSet(2,1);
+    ruleSet: RuleSet = new SwedishRuleSet(4,4);
     agent: UtilityAgent = new UtilityAgent(this.ruleSet);
     state: State = new ListState(this.ruleSet);
     prevState: State = new ListState(this.ruleSet);
     prevAction: Action = Action.NONE;
 
+    players: number = 2;
+    playerTurn: number = 1;
+
     lastTenGames: Array<number> = []
     total: number = 0
     games: number = 0
 
-
     run(): boolean {      
         
-        let letter: string = this.ruleSet.rollDice(); 
 
+        let letters: Array<string> = new Array()
+        if ((this.playerTurn % this.players) == 0) {
+            this.playerTurn = 1
+            letters = this.ruleSet.rollDice(); 
+        } else {
+            this.playerTurn++;
+            letters = [this.ruleSet.rollOpponentDice()]; 
+        }
         // The game ends when there are no actions left 
-        if (this.state.getActions(letter).length == 0) {
+        if (this.state.getActions("a").length == 0) {
             //console.log("End of game: " + this.state.toString() + "points: " + this.state.getPoints())
             //console.log("Words found: " + this.state.getWords())
-            this.agent.selectAction(this.state, letter);
+            this.agent.selectAction(this.state, letters);
             
             this.total += this.state.getPoints()
             this.games++;
@@ -45,7 +54,7 @@ class Game {
         }
 
         // Choosing action
-        const a: Action = this.agent.selectAction(this.state, letter);
+        const a: Action = this.agent.selectAction(this.state, letters);
         this.prevAction = a;
         //console.log("Choosing action: " + a.toString());
         

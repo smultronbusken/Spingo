@@ -6,7 +6,7 @@ import { Action } from "./actions";
  * Only chooses random actions
  */
 export class SimpleAgent implements Agent {
-    selectAction(state: State, letter: string): Action {
-        return state.getActions(letter)[0];
+    selectAction(state: State, letters: Array<string>): Action {
+        return state.getActions(letters[0])[0];
     }
 }

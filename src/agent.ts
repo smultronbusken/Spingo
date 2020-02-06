@@ -6,5 +6,5 @@ export interface Agent {
      * Returns the action this agent chooses in a state
      * @param state 
      */
-    selectAction(state: State, prevState: State, prevAction: Action): Action
+    selectAction(state: State, letter: string): Action
 }

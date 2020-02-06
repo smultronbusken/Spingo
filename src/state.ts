@@ -2,20 +2,46 @@ import { Action } from "./actions";
 import { RuleSet } from "./rules";
 
 export interface State {
-    state: Array<Array<string>>;
-    getActions(): Array<Action>
+
+    board: any;
+
+    /**
+     * Returns all applicable actions in this state
+     */
+    getActions(symbol: string): Array<Action>
+
+    /**
+     * Returns a deep copy of this state with an action executed
+     * @param action The action to be executed
+     */
     doAction(action: Action): State
+
+    /**
+     * Returns the difference of points between  this state and another.
+     * @param previousState The state to be compared to
+     */
     getReward(previousState: State): number
+
+    
+    /**
+     * The sum of this states columns' and rows' getPointsForCombination() value
+     */
     getPoints(): number
+
+    getNeighbourStates(symbols: Array<string>): Array<State>
+
     getWords(): Array<string>
 
 }
 
 export class ListState implements State {
     static readonly empty: string = "?"
-    public state: Array<Array<string>>;
+    public board: Array<Array<string>>;
     ruleSet: RuleSet;
-    letter: string;
+
+    columns: number;
+    rows: number;
+    
 
     /**
      * 
@@ -23,102 +49,100 @@ export class ListState implements State {
      * @param state If undefined, the state will be filled with ListState.empty
      */
     constructor(ruleSet: RuleSet, state?: Array<Array<string>>) {
+        this.columns = ruleSet.colLength;
+        this.rows = ruleSet.rowLength;
+
         this.ruleSet = ruleSet;
-        this.letter = this.ruleSet.rollDice()
+
         if (state != undefined) {
-            this.state = state;
+            this.board = state;
         } else {
-            this.state = [];
+            // Generate an empty board
+            this.board = [];
             for (let index = 0; index < this.ruleSet.colLength; index++) {
                 let row: Array<string> = []
                 for (let index = 0; index < this.ruleSet.rowLength; index++) {
                     row.push(ListState.empty)
                 }
-                this.state.push(row)            
+                this.board.push(row)            
             }
         }
+
     }
 
-    /**
-     * Returns all applicable actions in this state
-     */
-    getActions(): Array<Action> {
+    getActions(symbol: string): Array<Action> {
         let actions: Array<Action> = new Array<Action>();
-        this.state.map((row: Array<string>, rowIndex: number) => {
+        this.board.map((row: Array<string>, rowIndex: number) => {
             row.map((letter: string, colIndex: number) => {
                 if (letter == ListState.empty)
-                    actions.push(new Action(this.letter, rowIndex, colIndex))
+                    actions.push(new Action(symbol, rowIndex, colIndex))
             })
         });
         return actions;
     }    
-    
-    /**
-     * Returns a deep copy of this state with an action executed
-     * @param action The action to be executed
-     */
+
     doAction(action: Action): State {
-        // TODO something fishy here
         let copy: Array<Array<string>> = new Array()
-        this.state.forEach((row: Array<string>) => {
+        this.board.forEach((row: Array<string>) => {
             copy.push(Array.from(row))
         });
-
-
         copy[action.rowIndex][action.colIndex] = action.letter;
         return new ListState(this.ruleSet, copy);
     }
 
-    /**
-     * Returns the difference of points between  this state and another.
-     * @param previousState The state to be compared to
-     */
+    isBoardFull(): boolean {
+        let isFull: boolean = true;
+        this.board.forEach((element: Array<string>) => {
+            if (element.find((s: string) => s == ListState.empty) == undefined) {
+                isFull = false;
+            }
+        });
+        return isFull;
+    }
+
     getReward(previousState: State): number {
-        if (this.getActions().length == 0) {
+        if (this.isBoardFull()) {
             return this.getPoints() - previousState.getPoints();
         }
         else
             return 0
     }
 
-    /**
-     * The sum of this states columns' and rows' getPointsForCombination() value
-     */
     getPoints(): number {
+        // Only get points for full states
+        if (this.isBoardFull())
+            return 0;
+
         let total: number = 0;
-        this.state.map((combination: Array<string>) => {
+        this.board.map((combination: Array<string>) => {
             total += this.getLongestWord(combination).length;
         })
+
+        /*
         for (let col = 0; col < this.ruleSet.colLength; col++) {
             let columnCombination: Array<string> = []
             this.state.map((row: Array<string>) =>  {
                 columnCombination.push(row[col]);
             })
             total += this.getLongestWord(columnCombination).length
-        }
+        }*/
         return total;
     }
 
-
-    /**
-     * The sum of this states columns' and rows' getPointsForCombination() value
-     */
     getWords(): Array<string> {
         let words: Array<string> = new Array()
-        this.state.map((combination: Array<string>) => {
+        this.board.map((combination: Array<string>) => {
             words.push(this.getLongestWord(combination));
         })
         for (let col = 0; col < this.ruleSet.colLength; col++) {
             let columnCombination: Array<string> = []
-            this.state.map((row: Array<string>) =>  {
+            this.board.map((row: Array<string>) =>  {
                 columnCombination.push(row[col]);
             })
             words.push(this.getLongestWord(columnCombination));
         }
         return words;
     }
-
-
 
     /**
      * Returns longest word 
@@ -155,12 +179,37 @@ export class ListState implements State {
 
     toString(): string {
         let s: string = "";
-        for (let i = 0; i < this.state.length; i++) {
-            s += this.state[i].toString()
-
+        for (let i = 0; i < this.board.length; i++) {
+            s += this.board[i].toString()
         }
-    return s;
+        return s;
+    }
+
+    /**
+     * @param symbols The symbols that can be used. For example [a, b, c]
+     */
+    getNeighbourStates(symbols: Array<string>): Array<State> {
+        let states: Array<State> = new Array();
+        symbols.forEach((element: string)  => {
+
+            this.board[0].forEach((value: string, index: number) => {
+                
+                if (value == ListState.empty) {
+                    let temp: State = new ListState(this.ruleSet, [Array.from(this.board[0])])
+                    temp.board[0][index] = element;
+                    states.push(temp)
+                }
+
+            });
+        
+        
+        });
+        return states;
     }
 
 
+    
 }
+
+
+

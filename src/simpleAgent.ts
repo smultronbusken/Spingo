@@ -2,9 +2,11 @@ import { Agent } from "./agent"
 import { State } from "./state";
 import { Action } from "./actions";
 
+/**
+ * Only chooses random actions
+ */
 export class SimpleAgent implements Agent {
-    qTable: Map<string, number> = new Map()
-    selectAction(state: State, prevState: State, prevAction: Action): Action {
-        return state.getActions()[0];
+    selectAction(state: State, letter: string): Action {
+        return state.getActions(letter)[0];
     }
 }

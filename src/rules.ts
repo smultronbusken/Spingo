@@ -4,6 +4,7 @@ import * as path from 'path';
 export interface RuleSet {
     rowLength: number;
     colLength: number;
+    distribution: Map<string, number>;
 
     /**
      * All valid symbols
@@ -26,15 +27,21 @@ export class SwedishRuleSet implements RuleSet{
     //static readonly symbols: Array<string> = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "x", "y", "z", "å", "ä", "ö"]
     //distribution: Array<number> = [4/44, 1/44, 1/44, 2/44, 3/44, 1/44, 1/44, 1/44, 3/44, 1/44, 2/44, 2/44, 1/44, 2/44, 2/44, 1/44, 1/44, 3/44, 2/44, 2/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44, 1/44]
     static readonly symbols: Array<string> = ["a", "b"]
-    distribution: Array<number> = [3/4, 1/4]
+    distribution: Map<string, number> = new Map();
     
     rowLength: number;
     colLength: number;
     words: Set<string> = new Set();
 
     constructor(rowLength: number, colLength: number) {
-        if(SwedishRuleSet.symbols.length != this.distribution.length)
+        this.distribution.set("a", 3/4);
+        this.distribution.set("b", 1/4);
+        //this.distribution.set("c", 1/4);
+        if(SwedishRuleSet.symbols.length != this.distribution.size)
             throw new Error("Length of symbol and distribution array is not equal.")
+        
+
+        
         this.rowLength = rowLength;
         this.colLength = colLength;
         
@@ -44,7 +51,7 @@ export class SwedishRuleSet implements RuleSet{
 
         data = data.toLowerCase();
         SwedishRuleSet.symbols.map((value: string, index: number) => {
-            this.distribution[index] = data.split(value).length / (data.length * 0.69)
+            this.distribution.set(value, data.split(value).length / (data.length * 0.69))
         }) 
         
         this.words = new Set(data.split("\r\n"));
@@ -52,10 +59,11 @@ export class SwedishRuleSet implements RuleSet{
 
         this.words = new Set(["a", "ab"])
         console.log("Created rule set. Words: " + this.words.size)
+        console.log(this.distribution)
     }
 
     rollDice(): string {
-        let symbolIndex: number = SwedishRuleSet.sample(this.distribution)
+        let symbolIndex: number = SwedishRuleSet.sample(Array.from(this.distribution.values()))
         return SwedishRuleSet.symbols[symbolIndex]
     }
 

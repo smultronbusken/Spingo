@@ -83,7 +83,7 @@ export class SwedishRuleSet implements RuleSet{
 
         //this.words = new Set(["a", "ab", "abb", "bab"])
         console.log("Created rule set. Words: " + this.words.size)
-        console.log(this.distribution)
+        //console.log(this.distribution)
     }
 
     rollDice(): Array<string> {

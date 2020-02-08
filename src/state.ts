@@ -185,4 +185,132 @@ export class ListState implements State {
 }
 
 
+export class StringState implements State {
+    static readonly empty: string = "?"
+    public board: Array<string>;
+    ruleSet: RuleSet;
+
+    dimension: number;
+    
+
+    /**
+     * 
+     * @param ruleSet The ruleset this state should abide to
+     * @param state If undefined, the state will be filled with ListState.empty
+     */
+    constructor(ruleSet: RuleSet, state?: Array<string>) {
+        this.dimension = ruleSet.rowLength;
+
+        this.ruleSet = ruleSet;
+
+        if (state != undefined) {
+            this.board = state;
+        } else {
+            // Generate an empty board
+            this.board = [];
+            for (let index = 0; index < this.dimension*this.dimension; index++) {
+                this.board.push(ListState.empty)            
+            }
+        }
+
+    }
+
+    getActions(symbol: string): Array<Action> {
+        let actions: Array<Action> = new Array<Action>();
+        this.board.map((s: string, index: number) => {
+            if (s == ListState.empty){
+                let colIndex = index % this.dimension;
+                let rowIndex = Math.floor(index/this.dimension)
+                actions.push(new Action(symbol, rowIndex, colIndex))
+            }
+        });
+        return actions;
+    }    
+
+    doAction(action: Action): State {
+        let copy: Array<string> = Array.from(this.board)
+        copy[action.rowIndex*this.dimension + action.colIndex] = action.letter;
+        return new StringState(this.ruleSet, copy);
+    }
+
+
+    isBoardFull(): boolean {
+        let isFull: boolean = true;
+        this.getRows().forEach((row: Array<string>) => {
+            if (row.find((s: string) => s == ListState.empty) == undefined) {
+                isFull = false;
+            }
+        });
+        return isFull;
+    }
+
+    getReward(previousState: State): number {
+        if (this.isBoardFull()) {
+            return this.getPoints() - previousState.getPoints();
+        }
+        else
+            return 0
+    }
+
+    getPoints(): number {
+        // Only get points for full states
+        if (this.isBoardFull())
+            return 0;
+
+        let total: number = 0;
+        this.getRows().map((row: Array<string>) => {
+            total += this.ruleSet.getLongestWord(row).length;
+        })
+        this.getColumns().map((col: Array<string>) => {
+            total += this.ruleSet.getLongestWord(col).length
+        })
+        return total;
+    }
+
+    getWords(): Array<string> {
+        let words: Array<string> = new Array()
+        this.getRows().map((combination: Array<string>) => {
+            words.push(this.ruleSet.getLongestWord(combination));
+        })
+        this.getColumns().map((combination: Array<string>) => {
+            words.push(this.ruleSet.getLongestWord(combination));
+        })
+        return words;
+    }
+
+    toString(): string {
+        let s: string = "";
+        for (let i = 0; i < this.board.length; i++) {
+
+            s += this.board[i].toString()
+        }
+        return s;
+    }
+
+    getColumns(): Array<Array<string>> {
+        let cols: Array<Array<string>> = new Array()
+        for (let i = 0; i < this.dimension*this.dimension; i += this.dimension) {
+            let columnCombination: Array<string> = []
+            this.getRows().map((row: Array<string>) =>  {
+                columnCombination.push(row[i]);
+            })
+            cols.push(columnCombination);
+        }
+        return cols
+    }
+
+    getRows(): Array<Array<string>> {
+    
+        let rows: Array<Array<string>> = new Array()
+        
+        for (let i = 0; i < this.dimension*this.dimension; i += this.dimension) {
+            rows.push(this.board.slice(i, i + this.dimension));
+        }
+    
+        return rows
+    }
+}
+
+
+
 

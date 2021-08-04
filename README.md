@@ -6,6 +6,6 @@ Each turn a player throw a dice containg 4 letters. The player must the choose a
 Internally the game is modeled as a [Markovian Decision Process](https://en.wikipedia.org/wiki/Markov_decision_process) which we then solve using a variation of the  Value iteration algorithm reffered to in the wikipedia article.
 
 To run:
-`npm install'
+`npm install`
 `ts-node src/index.ts`
 
